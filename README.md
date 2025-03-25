@@ -1,29 +1,92 @@
 # masterSchool
 
-masterSchool is a Node.js application designed to manage an admissions process through a RESTful API. It allows for creating users, tracking their progress through various admission steps, and determining their acceptance status.
+`masterSchool` is a Node.js REST API for managing an admissions process. It allows you to create users, track their progress through a multi-step enrollment flow, and determine their acceptance status.
 
-**Features**  
-  User Management: Create and manage user profiles with personal details.  
-  Admissions Flow Tracking: Monitor user progress through predefined admission steps and tasks.  
-  Status Evaluation: Determine the acceptance status of users based on their progress and results.
-  
-**Prerequisites**  
-Before setting up the project, ensure you have the following installed:  
-  Node.js (version 14 or later)  
-  npm (comes bundled with Node.js)
-  
-**Installation**  
-  Clone the Repository from https://github.com/AhiyaSchneider/masterSchool  
-  Navigate to the Project Directory and than Install Dependencies:  npm install
+---
 
-**Running the Application**  
-Start the Server:  node index.js  
-The server will start and listen for incoming requests. By default, it runs on http://localhost:3000.  
-Testing the API using test.js (script provided for testing of the API endpoints) To execute it:  
-node test.js  
-This script will perform a series of API calls to demonstrate the functionality of the application.  
+## 📋 Features
 
-**Notes**  
-  The application uses in-memory storage; data will reset upon server restart.  
-  Ensure all required fields are provided in API requests to avoid errors.  
-  For detailed information on each endpoint's functionality, refer to the controller and utility files in the repository.
+- **User Management** – Create and manage users with personal details  
+- **Admissions Flow Tracking** – Track user progress through predefined steps and tasks  
+- **Status Evaluation** – Automatically determine if a user is accepted, rejected, or still in progress
+
+---
+
+## 🚀 Getting Started
+
+### ✅ Prerequisites
+
+Make sure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (v14 or later)
+- npm (comes with Node.js)
+
+---
+
+### 📦 Installation
+
+```bash
+git clone https://github.com/AhiyaSchneider/masterSchool
+cd masterSchool
+npm install
+```
+
+---
+
+## 🖥️ Running the Server
+
+```bash
+node index.js
+```
+
+By default, the server will run on:  
+`http://localhost:3000`
+
+---
+
+## 🧪 Testing the API (manually)
+
+Run the test script to simulate API calls:
+
+```bash
+node test.js
+```
+
+This will:
+- Create a user
+- Complete an IQ Test step
+- Check the user's current step and status
+
+---
+
+## 📚 API Endpoints
+
+| Method | Endpoint                       | Description                       |
+|--------|--------------------------------|-----------------------------------|
+| POST   | `/api/users`                   | Create a new user                 |
+| GET    | `/api/flow`                    | Get the full admissions flow      |
+| GET    | `/api/users/:userId/step`      | Get current step for a user       |
+| PUT    | `/api/steps/complete`          | Mark a step as complete           |
+| GET    | `/api/users/:userId/status`    | Get a user's admission status     |
+
+---
+
+## 🗒️ Notes
+
+- The app uses in-memory storage — data is reset on server restart.  
+- Duplicate users with the same name + email are not allowed.  
+- You can edit the flow dynamically inside `flowModel.js`.
+
+---
+
+## 🧠 Future Ideas
+
+- Add database support (MongoDB or PostgreSQL)  
+- Include a web-based frontend  
+- Add email notifications on step completion
+
+---
+
+## 📄 License
+
+MIT License
