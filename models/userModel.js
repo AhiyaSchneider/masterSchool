@@ -1,32 +1,30 @@
-// models/userModel.js
-
 const flow = require('./flowModel');
-const crypto = require('crypto');
 
 let userIdCounter = 1;
+
+function initializeProgress() {
+    const progress = {};
+    flow.forEach(step => {
+        progress[step.step] = {};
+        step.tasks.forEach(task => {
+            progress[step.step][task] = false;
+        });
+    });
+    progress['Personal Details Form']['form'] = true;
+    return progress;
+}
 
 class User {
     constructor({ email, first_name, last_name }) {
         this.id = userIdCounter++;
-        this.email = email;
-        this.first_name = first_name;
-        this.last_name = last_name;
         this.timestamp = new Date().toISOString();
         this.status = 'in_progress';
-        this.progress = {};
-
-        flow.forEach(step => {
-            this.progress[step.step] = {};
-            step.tasks.forEach(task => {
-                this.progress[step.step][task] = false;
-            });
-        });
-
-        // Mark "Personal Details Form" as completed
-        if (this.progress['Personal Details Form']) {
-            this.progress['Personal Details Form']['form'] = true;
-        }
+        this.personal_info = { email, first_name, last_name };
+        this.progress = initializeProgress();
+        this.interview = { date: null, interviewer_id: null };
+        this.contract = { passport_number: null, passport_uploaded_at: null, signed_at: null };
     }
 }
+
 
 module.exports = User;

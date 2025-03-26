@@ -6,7 +6,7 @@ const admissionsController = require('../controllers/admissionsController');
 router.post('/users', admissionsController.createUser);
 
 // 2. Get the full flow
-router.get('/flow', admissionsController.getFlow);
+router.get('/users/:userId/flow', admissionsController.getFlow);
 
 // 3. Get current step for a user
 router.get('/users/:userId/step', admissionsController.getCurrentStep);

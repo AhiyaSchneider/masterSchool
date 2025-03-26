@@ -1,24 +1,80 @@
 const flow = require('../models/flowModel');
 const User = require('../models/userModel');
+const { handleTask } = require('./completeStepUtils');
 
 const users = {}; // In-memory storage (wiped on server restart)
 
-// 1. Create a new user
+/**
+ * Create a new user and initialize their progress through the admission flow.
+ *
+ * Parameters:
+ * - email: User's email address
+ * - first_name: User's first name
+ * - last_name: User's last name
+ *
+ * Returns:
+ * - Object containing the new user's ID
+ */
 function createUser(email, first_name, last_name) {
-    const newUser = new User(email);
+    const newUser = new User({ email, first_name, last_name });
     users[newUser.id] = newUser;
     return { id: newUser.id };
 }
 
-// 2. Get the full admissions flow (step names only)
-function getFlow() {
-    return flow.map(step => step.step);
+/**
+ * Retrieve the full admissions flow with task completion status for a specific user.
+ *
+ * Parameters:
+ * - userId: ID of the user
+ *
+ * Returns:
+ * - Object containing:
+ *   - current_step_index: index of the step the user is currently on
+ *   - total_steps: total number of steps in the flow
+ *   - flow: array of step objects with task completion status
+ * - Error object if the user is not found
+ */
+function getFlow(userId) {
+    const user = users[userId];
+    if (!user) return { error: 'User ID not found or invalid.' };
+
+    let currentStepIndex = -1;
+
+    const userFlow = flow.map((step, index) => {
+        const taskStatuses = user.progress[step.step];
+        const allDone = Object.values(taskStatuses).every(done => done);
+
+        if (currentStepIndex === -1 && !allDone) {
+            currentStepIndex = index;
+        }
+
+        return {
+            step: step.step,
+            tasks: taskStatuses
+        };
+    });
+
+    return {
+        current_step_index: currentStepIndex,
+        total_steps: flow.length,
+        flow: userFlow
+    };
 }
 
-// 3. Get the current step & pending tasks for a user
+
+/**
+ * Get the current step and any pending tasks for a given user.
+ *
+ * Parameters:
+ * - userId: ID of the user
+ *
+ * Returns:
+ * - 200 OK with the current step and list of incomplete tasks
+ * - Error object if user is not found or all steps are completed
+ */
 function getCurrentStep(userId) {
     const user = users[userId];
-    if (!user) return { error: 'User not found' };
+    if (!user) return { error: 'User ID not found or invalid.' };
 
     for (const step of flow) {
         const tasks = step.tasks;
@@ -33,38 +89,28 @@ function getCurrentStep(userId) {
     return { message: 'All steps complete' };
 }
 
-// 4. Complete a step (and apply any pass/fail logic)
+/**
+ * Mark a specific step as completed for a user based on the given payload.
+ * Also applies conditional logic for pass/fail steps.
+ *
+ * Parameters:
+ * - user_id: ID of the user
+ * - step_name: Name of the step
+ * - step_payload: Data required to complete the step
+ *
+ * Returns:
+ * - Message indicating step completion
+ * - Error object if step or user is invalid or data is missing
+ */
 function completeStep({ user_id, step_name, step_payload }) {
     const user = users[user_id];
-    if (!user) return { error: 'User not found' };
-
+    if (!user) return { error: 'User ID not found or invalid.' };
     const step = flow.find(s => s.step === step_name);
     if (!step) return { error: 'Invalid step name' };
 
     if (!user.progress[step_name]) return { error: 'Step not initialized for user' };
-
-    for (const task of step.tasks) {
-        if (task === 'iq_test') {
-            const score = step_payload.score;
-            if (score > 75) {
-                user.progress[step_name][task] = true;
-            } else if (score < 60) {
-                user.status = 'rejected';
-                user.progress[step_name][task] = false;
-            } else {
-                // 60–75 second chance (not shown in flow)
-                user.progress[step_name][task] = false;
-                // you could log this or set a flag
-            }
-        } else if (task === 'perform_interview') {
-            const passed = step_payload.decision === 'passed_interview';
-            user.progress[step_name][task] = passed;
-            if (!passed) user.status = 'rejected';
-        } else {
-            // Default: mark task as completed
-            user.progress[step_name][task] = true;
-        }
-    }
+    const error = handleTask({ user, step_name, payload: step_payload });
+    if (error) return { error };
 
     // Check if all steps are now complete
     const allDone = flow.every(s =>
@@ -75,13 +121,24 @@ function completeStep({ user_id, step_name, step_payload }) {
         user.status = 'accepted';
     }
 
-    return { success: true };
+    return {
+        message: 'Step completed.'
+    };
 }
 
-// 5. Get the user's status
+/**
+ * Retrieve the current admission status for a user.
+ *
+ * Parameters:
+ * - userId: ID of the user
+ *
+ * Returns:
+ * - Object with the user's status
+ * - Error object if user is not found
+ */
 function getStatus(userId) {
     const user = users[userId];
-    if (!user) return { error: 'User not found' };
+    if (!user) return { error: 'User ID not found or invalid.' };
     return { status: user.status };
 }
 
