@@ -156,66 +156,59 @@ function handleGenericTask(user, step_name, task) {
  * - Error message if validation fails or step is unrecognized
  */
 function handleTask({ user, step_name, payload }) {
-    const currentStepName = getCurrentStepName(user); 
-    if (step_name !== currentStepName) {
-        return {
-            error: `You are currently on '${currentStepName}'. Cannot complete '${step_name}' yet.`
-        };
-    }
+    const result = getCurrentStepWithFirstTask(user);
+    if (!result)
+        return 'All steps completed!';
+    if (step_name !== result.step) 
+        return `You are currently on '${result.step}'. Cannot complete '${step_name}'`
 
-    if (step_name === 'IQ Test') {
+    if (step_name === 'IQ Test')
         return handleIqTest(user, payload);
-    }
 
     if (step_name === 'Interview') {
-        if ('interviewer_id' in payload && 'decision' in payload) {
+        if (result.task === 'perform_interview')
             return handlePerformInterview(user, payload);
-        }
-        if ('interview_date' in payload) {
+        if (result.task === 'schedule_interview')
             return handleScheduleInterview(user, payload);
-        }
         return 'Missing interview-related data';
     }
 
     if (step_name === 'Sign Contract') {
-        if ('passport_number' in payload) {
+        if (result.task === 'upload_id')
             return handleUploadId(user, payload);
-        }
-        if ('timestamp' in payload && !('passport_number' in payload)) {
+        if (result.task === 'sign_contract')
             return handleSignContract(user, payload);
-        }
-        return 'Missing contract-related data';
+        return 'incorrect step';
     }
 
-    if (step_name === 'Payment') {
+    if (step_name === 'Payment')
         return handleGenericTask(user, step_name, 'payment');
-    }
 
-    if (step_name === 'Join Slack') {
+    if (step_name === 'Join Slack')
         return handleGenericTask(user, step_name, 'join_slack');
-    }
-
+    
     return 'Unrecognized step or missing payload fields';
 }
 
 /**
- * Determines the current step the user is on based on their progress.
+ * Returns the current step and the first incomplete task for the user.
  *
- * Parameters:
- * - user: The user object
- *
- * Returns:
- * - The name of the current step (string)
- * - null if all steps are completed
+ * user - The user object
+ * Object|| null - { step: 'Step Name', task: 'first_incomplete_task' } or null if all complete
  */
-function getCurrentStepName(user) {
+function getCurrentStepWithFirstTask(user) {
     for (const step of flow) {
-        const tasks = step.tasks;
-        const allDone = tasks.every(task => user.progress[step.step][task]);
-        if (!allDone) {
-            return step.step;
+        const taskStatuses = user.progress[step.step];
+        for (const task of step.tasks) {
+            if (!taskStatuses[task]) {
+                return {
+                    step: step.step,
+                    task
+                };
+            }
         }
     }
+
     return null;
 }
 

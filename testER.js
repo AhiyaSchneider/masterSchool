@@ -33,7 +33,7 @@ const BASE_URL = 'http://localhost:3000/api';
         });
         const userId = user.id;
 
-        // 1. Upload ID
+        // 1. Upload ID when need to pass iq
         try {
             await axios.put(`${BASE_URL}/steps/complete`, {
                 user_id: userId,
@@ -47,6 +47,13 @@ const BASE_URL = 'http://localhost:3000/api';
             console.log(' 1. Uploaded ID when waiting to iq test', err.response.data);
         }
 
+        //pass iq step
+        const iqreq = await axios.put(`${BASE_URL}/steps/complete`, {
+            user_id: userId,
+            step_name: 'IQ Test',
+            step_payload: { score: 80 }
+        });
+
         // 2. Complete step with invalid step name
         try {
             await axios.put(`${BASE_URL}/steps/complete`, {
@@ -58,23 +65,46 @@ const BASE_URL = 'http://localhost:3000/api';
             console.log(' 2. Invalid step name:', err.response.data);
         }
 
+        // 2.1schedule interview with prev date
+        try {
+            await axios.put(`${BASE_URL}/steps/complete`, {
+                user_id: userId,
+                step_name: 'Interview',
+                step_payload: { interview_date: '2022-04-01' }
+            });
+        } catch (err) {
+            console.log(' 2.1. schedule interview with prev date:', err.response.data);
+        }
+
+        //schedule correct interview
+        try {
+            await axios.put(`${BASE_URL}/steps/complete`, {
+                user_id: userId,
+                step_name: 'Interview',
+                step_payload: { interview_date: '2025-04-01' }
+            });
+        } catch (err) {
+            console.log(' 2.2. schedule correct interview failed:', err.response.data);
+        }
+
         // 3. Perform interview with missing data
         try {
             await axios.put(`${BASE_URL}/steps/complete`, {
                 user_id: userId,
                 step_name: 'Interview',
-                step_payload: { interview_date: '2025-04-01' } // missing interviewer_id + decision
+                step_payload: { interview_date: '2025-04-01' } 
             });
         } catch (err) {
             console.log(' 3. Incomplete interview data:', err.response.data);
         }
 
+        // 4. Interview date mismatch
         try {
             await axios.put(`${BASE_URL}/steps/complete`, {
                 user_id: userId,
                 step_name: 'Interview',
                 step_payload: {
-                    interview_date: '2025-04-02', // wrong date
+                    interview_date: '2025-04-02', 
                     interviewer_id: 'int-1',
                     decision: 'passed_interview'
                 }
@@ -103,19 +133,15 @@ const BASE_URL = 'http://localhost:3000/api';
         console.log('5. Status after rejection:', statusCheck.data);
 
         // 6. Try completing already completed task
-        await axios.put(`${BASE_URL}/steps/complete`, {
-            user_id: userId,
-            step_name: 'IQ Test',
-            step_payload: { score: 80 }
-        });
-
-        const resRepeat = await axios.put(`${BASE_URL}/steps/complete`, {
-            user_id: userId,
-            step_name: 'IQ Test',
-            step_payload: { score: 85 }
-        });
-
-        console.log('6. Re-submitting completed step:', resRepeat.data);
+        try {
+            const resRepeat = await axios.put(`${BASE_URL}/steps/complete`, {
+                user_id: userId,
+                step_name: 'IQ Test',
+                step_payload: { score: 80 }
+            });
+        } catch (err) {
+            console.log('6. Re-submitting completed step:', err.response.data);
+        }
 
         console.log('\nVVV Error testing completed. VVV\n');
 
