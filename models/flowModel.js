@@ -1,3 +1,12 @@
+/**
+ * Defines the full admissions flow configuration.
+ *
+ * Each step contains:
+ * - step: The name of the step
+ * - tasks: An array of tasks required to complete the step
+ *
+ * This structure is used to initialize user progress and track completion.
+ */
 const flow = [
     { step: 'Personal Details Form', tasks: ['form'] },
     { step: 'IQ Test', tasks: ['iq_test'] },

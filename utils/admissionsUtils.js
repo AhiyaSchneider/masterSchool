@@ -70,7 +70,8 @@ function getFlow(userId) {
  *
  * Returns:
  * - 200 OK with the current step and list of incomplete tasks
- * - Error object if user is not found or all steps are completed
+ * - Error object if user is not found
+ * -  message if all steps are completed
  */
 function getCurrentStep(userId) {
     const user = users[userId];
@@ -112,7 +113,6 @@ function completeStep({ user_id, step_name, step_payload }) {
     const error = handleTask({ user, step_name, payload: step_payload });
     if (error) return { error };
 
-    // Check if all steps are now complete
     const allDone = flow.every(s =>
         s.tasks.every(t => user.progress[s.step][t])
     );
