@@ -12,14 +12,6 @@
 
 ## Getting Started
 
-### Prerequisites
-
-Make sure you have the following installed:
-
-- [Node.js](https://nodejs.org/) (v14 or later)
-- npm (comes with Node.js)
-
-
 ### Installation
 
 ```bash
