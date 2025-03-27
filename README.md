@@ -39,10 +39,13 @@ Run the test script to simulate API calls:
 node test.js
 ```
 
-This will:
-- Create a user
-- Complete an IQ Test step
-- Check the user's current step and status
+This will test a correct flow for user.
+
+```bash
+node testER.js
+```
+
+This will test cases that return error message.
 
 
 ## API Endpoints
